@@ -1,0 +1,4 @@
+[
+	{ "path": "/test1", "URL": "https://godoc.org/gopkg.in/yaml.v2" },
+	{ "path": "/second", "URL": "facebook.com" }
+]

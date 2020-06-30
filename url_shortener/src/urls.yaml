@@ -1,0 +1,6 @@
+- path: /url1
+  url: https://github.com/gophercises/urlshort
+- path: /url2
+  url: https://github.com/gophercises/urlshort/tree/solution
+- path: /google
+  url: http://google.com
