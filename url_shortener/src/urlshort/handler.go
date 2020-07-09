@@ -3,8 +3,8 @@ package urlshort
 import (
 	"encoding/json"
 	"fmt"
+	"gophercises/url_shortener/src/postgresconnection"
 	"net/http"
-	"url_shortener/src/postgresconnection"
 
 	"github.com/go-yaml/yaml"
 )
