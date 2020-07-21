@@ -3,10 +3,13 @@ package sitemap
 import (
 	"bytes"
 	"encoding/xml"
+	"fmt"
 	"gophercises/link"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
+	"strings"
 )
 
 type Urlset struct {
@@ -19,24 +22,41 @@ type URL struct {
 }
 
 // NewSitemap gets a html page, parses all its links and returns a XML file as sitemap format
-func NewSitemap(url string) ([]byte, error) {
+func NewSitemap(urlPath string) ([]byte, error) {
 
-	reader, _ := readHTMLPage(url)
-	links, err := link.Parse(reader)
+	resp, err := http.Get("https://gophercises.com")
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	links, err := link.Parse(resp.Body)
 	if err != nil {
 		return nil, err
 	}
 
-	var xmlDoc *Urlset
-	var urls []URL
-	for _, link := range links {
-		urls = append(urls, URL{link.Href})
-		xmlDoc = &Urlset{URL: urls}
+	reqUrl := resp.Request.URL
+	baseUrl := &url.URL{
+		Scheme: reqUrl.Scheme,
+		Host:   reqUrl.Host,
+	}
+	base := baseUrl.String()
+
+	var hrefs []string
+	for _, l := range links {
+		switch {
+		case strings.HasPrefix(l.Href, "/"):
+			hrefs = append(hrefs, base+l.Href)
+		case strings.HasPrefix(l.Href, "http"):
+			hrefs = append(hrefs, l.Href)
+		}
 	}
 
-	file, _ := xml.MarshalIndent(xmlDoc, " ", " ")
+	for _, href := range hrefs {
+		fmt.Println(href)
+	}
 
-	return file, nil
+	return nil, nil
 }
 
 func readHTMLPage(url string) (io.Reader, error) {
