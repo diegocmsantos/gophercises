@@ -18,9 +18,9 @@ var listCmd = &cobra.Command{
 		if err != nil {
 			fmt.Println("add cmd: error reading all keys: %v", err)
 		}
-		var result string
-		for _, todo := range values {
-			result += fmt.Sprintf("%s, %t\n", todo.Description, todo.Done)
+		result := "You have the following tasks:\n"
+		for i, todo := range values {
+			result += fmt.Sprintf("%d. %s\n", i+1, todo.Description)
 		}
 		if result != "" {
 			fmt.Fprint(os.Stdout, result)

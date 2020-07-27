@@ -28,7 +28,8 @@ var addCmd = &cobra.Command{
 
 		if errorsArray != nil {
 			fmt.Fprint(os.Stdout, strings.Join(errorsArray, "\n"))
-		} else {
+		}
+		if successArray != nil {
 			fmt.Fprint(os.Stdout, strings.Join(successArray, "\n"))
 		}
 	},

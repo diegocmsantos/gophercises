@@ -27,7 +27,7 @@ func Create(todo *Todo) (*Todo, error) {
 	return todo, nil
 }
 
-// List it lists all todos
+// List it lists all not done todos
 func List() ([]Todo, error) {
 	conn, err := db.Open()
 	defer conn.Close()
@@ -44,7 +44,9 @@ func List() ([]Todo, error) {
 
 		for key, value := range todosFound {
 			done, _ := strconv.ParseBool(value)
-			todos = append(todos, Todo{Description: key, Done: done})
+			if !done {
+				todos = append(todos, Todo{Description: key, Done: done})
+			}
 		}
 	}
 

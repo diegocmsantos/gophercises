@@ -12,12 +12,9 @@ var (
 	cfgFile     string
 	userLicense string
 	rootCmd     = &cobra.Command{
-		Use:   "cobra",
-		Short: "A generator for Cobra based Applications",
-		Long: `Cobra is a CLI library for Go that empowers applications.
-		This application is a tool to generate the needed files
-		to quickly create a Cobra application.
-		`,
+		Use:   "task",
+		Short: "Another TODO application",
+		Long:  `You can create tasks, and mark as done your own tasks`,
 	}
 )
 
@@ -29,13 +26,9 @@ func Execute() error {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cobra.yaml)")
-	rootCmd.PersistentFlags().StringP("author", "a", "YOUR NAME", "author name for copyright attribution")
-	rootCmd.PersistentFlags().StringVarP(&userLicense, "license", "l", "", "name of license for the project")
-	rootCmd.PersistentFlags().Bool("viper", true, "use Viper for configuration")
+	rootCmd.PersistentFlags().StringP("author", "a", "Diego Maia", "author name for copyright attribution")
 	viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
-	viper.BindPFlag("useViper", rootCmd.PersistentFlags().Lookup("viper"))
-	viper.SetDefault("author", "NAME HERE <EMAIL ADDRESS>")
+	viper.SetDefault("author", "Diego Maia <diegocmsantos@gmail.com")
 	viper.SetDefault("license", "apache")
 
 }
@@ -54,7 +47,6 @@ func initConfig() {
 		}
 
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cobra")
 	}
 
 	viper.AutomaticEnv()
