@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"gophercises/todo/manager"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -15,9 +16,17 @@ var listCmd = &cobra.Command{
 
 		values, err := manager.List()
 		if err != nil {
-			fmt.Println("add cmd: error reading all keys: %q", err)
+			fmt.Println("add cmd: error reading all keys: %v", err)
 		}
-		fmt.Print("This should show all todos", values)
+		var result string
+		for _, todo := range values {
+			result += fmt.Sprintf("%s, %t\n", todo.Description, todo.Done)
+		}
+		if result != "" {
+			fmt.Fprint(os.Stdout, result)
+		} else {
+			fmt.Fprint(os.Stdout, "No tasks found.")
+		}
 	},
 }
 

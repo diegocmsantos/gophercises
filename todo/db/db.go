@@ -4,13 +4,20 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/mitchellh/go-homedir"
+
 	"github.com/boltdb/bolt"
 )
 
 // Open opens the database and return a instance of it
 func Open() (*bolt.DB, error) {
 
-	db, err := bolt.Open("todo.db", 0644, nil)
+	homeDirectory, err := homedir.Dir()
+	if err != nil {
+		return nil, err
+	}
+
+	db, err := bolt.Open(homeDirectory+"/todo.db", 0644, nil)
 	if err != nil {
 		log.Fatal(err)
 		return nil, err
@@ -73,6 +80,10 @@ func ReadAll(db *bolt.DB, bucket string) (map[string]string, error) {
 	db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
 		b := tx.Bucket([]byte(bucket))
+
+		if b == nil {
+			return nil
+		}
 
 		b.ForEach(func(k, v []byte) error {
 			values[string(k)] = string(v)

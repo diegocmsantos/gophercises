@@ -16,6 +16,7 @@ type Todo struct {
 // Create will store the new Todo and return it
 func Create(todo *Todo) (*Todo, error) {
 	conn, err := db.Open()
+	defer conn.Close()
 	if err != nil {
 		return nil, fmt.Errorf("list: error getting the database connection: %q", err)
 	}
@@ -29,6 +30,7 @@ func Create(todo *Todo) (*Todo, error) {
 // List it lists all todos
 func List() ([]Todo, error) {
 	conn, err := db.Open()
+	defer conn.Close()
 	if err != nil {
 		return nil, fmt.Errorf("list: error getting the database connection: %q", err)
 	}
@@ -52,6 +54,7 @@ func List() ([]Todo, error) {
 // MarkAsDone will mark a specific todo as done
 func MarkAsDone(todo *Todo) error {
 	conn, err := db.Open()
+	defer conn.Close()
 	if err != nil {
 		return fmt.Errorf("markAsDone: error getting the database connection: %q", err)
 	}
