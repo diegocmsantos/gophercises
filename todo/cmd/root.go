@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -24,7 +23,6 @@ func Execute() error {
 }
 
 func init() {
-	cobra.OnInitialize(initConfig)
 
 	rootCmd.PersistentFlags().StringP("author", "a", "Diego Maia", "author name for copyright attribution")
 	viper.BindPFlag("author", rootCmd.PersistentFlags().Lookup("author"))
@@ -35,23 +33,4 @@ func init() {
 
 func er(msg interface{}) {
 	fmt.Println("Error:", msg)
-}
-
-func initConfig() {
-	if cfgFile != "" {
-		viper.SetConfigFile(cfgFile)
-	} else {
-		home, err := homedir.Dir()
-		if err != nil {
-			er(err)
-		}
-
-		viper.AddConfigPath(home)
-	}
-
-	viper.AutomaticEnv()
-
-	if err := viper.ReadInConfig; err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
-	}
 }

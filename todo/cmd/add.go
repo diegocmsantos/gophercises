@@ -17,7 +17,7 @@ var addCmd = &cobra.Command{
 
 		var errorsArray, successArray []string
 		for _, arg := range args {
-			todo := manager.Todo{Description: arg, Done: false}
+			todo := manager.Todo{Value: arg}
 			_, err := manager.Create(&todo)
 			if err != nil {
 				errorsArray = append(errorsArray, fmt.Sprintf("Error creating %s task", arg))

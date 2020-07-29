@@ -1,96 +1,83 @@
 package db
 
 import (
-	"fmt"
+	"encoding/binary"
 	"log"
-
-	"github.com/mitchellh/go-homedir"
+	"time"
 
 	"github.com/boltdb/bolt"
 )
 
-// Open opens the database and return a instance of it
-func Open() (*bolt.DB, error) {
+var db *bolt.DB
 
-	homeDirectory, err := homedir.Dir()
+func Init(dbPath string, bucketName string) error {
+	var err error
+	db, err = bolt.Open(dbPath, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	db, err := bolt.Open(homeDirectory+"/todo.db", 0644, nil)
-	if err != nil {
-		log.Fatal(err)
-		return nil, err
-	}
-
-	return db, nil
-
+	return db.Update(func(tx *bolt.Tx) error {
+		_, err := tx.CreateBucketIfNotExists([]byte(bucketName))
+		return err
+	})
 }
 
 // Update store some data to the database
-func Update(db *bolt.DB, bucket, key, value string) error {
-	// store some data
+func Update(bucket, task string) (int, error) {
+
+	var id int
 	err := db.Update(func(tx *bolt.Tx) error {
-		bucket, err := tx.CreateBucketIfNotExists([]byte(bucket))
-		if err != nil {
-			return err
-		}
+		bucket := tx.Bucket([]byte(bucket))
+		id64, _ := bucket.NextSequence()
+		id = int(id64)
+		key := itob(id)
+		return bucket.Put(key, []byte(task))
 
-		err = bucket.Put([]byte(key), []byte(value))
-		if err != nil {
-			return err
-		}
-		return nil
 	})
 
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return -1, err
 	}
 
-	return nil
-}
-
-// Read retrieve data based on the passed key
-func Read(db *bolt.DB, bucket, key []byte) error {
-	// retrieve the data
-	err := db.View(func(tx *bolt.Tx) error {
-		bucket := tx.Bucket(bucket)
-		if bucket == nil {
-			return fmt.Errorf("bucket %q not found", bucket)
-		}
-
-		val := bucket.Get(key)
-		fmt.Println(string(val))
-
-		return nil
-	})
-
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
-
-	return nil
+	return id, nil
 }
 
 // ReadAll returns all keys
-func ReadAll(db *bolt.DB, bucket string) (map[string]string, error) {
-	values := make(map[string]string)
-	db.View(func(tx *bolt.Tx) error {
+func ReadAll(bucket string) (map[int]string, error) {
+	values := make(map[int]string)
+	err := db.View(func(tx *bolt.Tx) error {
 		// Assume bucket exists and has keys
 		b := tx.Bucket([]byte(bucket))
+		cursor := b.Cursor()
 
-		if b == nil {
-			return nil
+		for k, v := cursor.First(); k != nil; k, v = cursor.Next() {
+			values[btoi(k)] = string(v)
 		}
-
-		b.ForEach(func(k, v []byte) error {
-			values[string(k)] = string(v)
-			return nil
-		})
 		return nil
 	})
 
+	if err != nil {
+		return nil, err
+	}
+
 	return values, nil
+}
+
+func Delete(bucket string, key int) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucket))
+		return b.Delete(itob(key))
+	})
+}
+
+func itob(v int) []byte {
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, uint64(v))
+	return b
+}
+
+func btoi(b []byte) int {
+	return int(binary.BigEndian.Uint64(b))
 }
