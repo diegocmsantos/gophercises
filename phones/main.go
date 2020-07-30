@@ -1,9 +1,8 @@
 package main
 
 import (
-	"bytes"
-	"database/sql"
 	"fmt"
+	"gophercises/phones/normalize"
 	"gophercises/phones/phonesdb"
 
 	_ "github.com/lib/pq"
@@ -18,31 +17,13 @@ const (
 )
 
 func main() {
-	psqlinfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-		host, port, user, password, dbname)
+	phonesdb.Init(false)
 
-	db, err := sql.Open("postgres", psqlinfo)
-	defer db.Close()
+	phones, err := phonesdb.AllPhones()
 	if err != nil {
-		panic(err)
+		fmt.Println("Error getting all phones:", err)
 	}
-
-	err = db.Ping()
-	if err != nil {
-		panic(err)
+	for _, phone := range phones {
+		fmt.Printf("The phone \"%s\" was normalized to \"%s\"\n", phone, normalize.Normalize(phone))
 	}
-
-	fmt.Println("Successfully connected to database!")
-
-	phonesdb.Init()
-}
-
-func normalize(phone string) string {
-	var buf bytes.Buffer
-	for _, ch := range phone {
-		if ch >= '0' && ch <= '9' {
-			buf.WriteRune(ch)
-		}
-	}
-	return buf.String()
 }

@@ -17,16 +17,35 @@ var psqlinfo = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmod
 	host, port, user, password, dbname)
 var db *sql.DB
 
-func Init() {
+func Init(initDB bool) {
 	fmt.Println("Init phonesdb function")
 	var err error
 	db, err = sql.Open("postgres", psqlinfo)
-	defer db.Close()
 	if err != nil {
 		panic(err)
 	}
-	createDatabase()
-	insertInitialData()
+	if initDB {
+		dropDatabase()
+		createDatabase()
+		createTable()
+		insertInitialData()
+	}
+}
+
+func dropDatabase() {
+	sqlStatement := "DROP DATABASE IF EXISTS $1;"
+	_, err := db.Exec(sqlStatement, "phones_db")
+	if err != nil {
+		panic(err)
+	}
+}
+
+func createDatabase() {
+	sqlStatement := "CREATE DATABASE $1;"
+	_, err := db.Exec(sqlStatement, "phones_db")
+	if err != nil {
+		panic(err)
+	}
 }
 
 func truncatePhonesTable() {
@@ -37,7 +56,7 @@ func truncatePhonesTable() {
 	}
 }
 
-func createDatabase() {
+func createTable() {
 	sqlStatement := `
 	CREATE TABLE phone_numbers (
 		id SERIAL PRIMARY KEY,
@@ -67,4 +86,28 @@ func insertInitialData() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func AllPhones() ([]string, error) {
+	var phones []string
+	rows, err := db.Query("SELECT phone FROM phone_numbers")
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var phone string
+		err = rows.Scan(&phone)
+		if err != nil {
+			return nil, err
+		}
+		phones = append(phones, phone)
+	}
+
+	err = rows.Err()
+	if err != nil {
+		return nil, err
+	}
+
+	return phones, nil
 }
