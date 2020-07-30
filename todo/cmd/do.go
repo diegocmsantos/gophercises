@@ -3,7 +3,6 @@ package cmd
 import (
 	"fmt"
 	"gophercises/todo/manager"
-	"os"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -14,11 +13,30 @@ var doCmd = &cobra.Command{
 	Short: "Marks a todo as done",
 	Long:  "Marks a todo as done",
 	Run: func(cmd *cobra.Command, args []string) {
+
+		// getting all tasks
+		todos, err := manager.List()
+		if err != nil {
+			fmt.Println("Error getting all tasks:", err)
+		}
+
+		// creating a list of integer ids
+		var ids []int
 		for _, arg := range args {
-			key, _ := strconv.Atoi(arg)
-			err := manager.MarkAsDone(key)
-			if err == nil {
-				fmt.Fprintf(os.Stdin, "%s marked as done", args[0])
+			id, _ := strconv.Atoi(arg)
+			ids = append(ids, id)
+		}
+
+		// iterating over all ids
+		for _, id := range ids {
+			// getting the task for the chose id
+			todo := todos[id-1]
+			// deleting the found todo
+			err := manager.MarkAsDone(todo.Key)
+			if err != nil {
+				fmt.Printf("Error marking \"%d\" as complete. Error: %q\n", todo.Key, err)
+			} else {
+				fmt.Printf("Todo \"%s\" marked as complete.\n", todo.Value)
 			}
 		}
 	},
